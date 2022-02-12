@@ -28,8 +28,33 @@ int main(void)
         std::cout << "Error!" << std::endl;
     }
 
-    /* print GL_VERSION just for check */
+    /* Print GL_VERSION just for check */
     std::cout << glGetString(GL_VERSION) << std::endl;
+
+    /* Create VertexBuffer */
+    float positions[6] = {
+        -0.5f, -0.5f,
+         0.0f,  0.5f,
+         0.5f, -0.5f,
+    };  // Vertex data
+
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);    // Look for usage in document(https://docs.gl/)
+
+    glEnableVertexAttribArray(0);
+    /* Parameters:
+     * index: Specifies the index of the generic vertex attribute to be modified
+     * size: Specifies the number of components per generic vertex attribute. Must be 1, 2, 3, 4.
+     * type: Specifies the data type of each component in the array.
+     * normalized: specifies whether fixed-point data values should be normalized
+     * stride: offset of vertex
+     * pointer: offset of attribute of vertex, position is first, so pointer == 0.
+     */
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -37,11 +62,12 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glBegin(GL_TRIANGLES);
-        glVertex2f(-0.5f, -0.5f);
-        glVertex2f( 0.0f,  0.5f);
-        glVertex2f( 0.5f, -0.5f);
-        glEnd();
+        /* Parameters
+         * mode:  Specifies what kind of primitives to render
+         * first: Specifies the starting index in the enabled arrays
+         * count: Specifies the number of indices to be rendered
+         */
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
