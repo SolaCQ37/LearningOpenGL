@@ -125,11 +125,17 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     /* Create VertexBuffer */
-    float positions[6] = {
-        -0.5f, -0.5f,
-         0.0f,  0.5f,
-         0.5f, -0.5f,
+    float positions[] = {
+        -0.5f, -0.5f,   // 0, left  down
+         0.5f, -0.5f,   // 1, right down
+         0.5f,  0.5f,   // 2, right top
+        -0.5f,  0.5f    // 3, left  top
     };  // Vertex data
+
+    unsigned int indices[] = {
+        0, 1, 2,
+        2, 3, 0
+    };  // Index data
 
     unsigned int buffer;
     glGenBuffers(1, &buffer);
@@ -147,6 +153,11 @@ int main(void)
      */
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
+    unsigned int ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
     /* Now we get shader code from file */
     ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
     unsigned int shader = CreateShader(source.VertexShader, source.FragmentShader);
@@ -163,7 +174,15 @@ int main(void)
          * first: Specifies the starting index in the enabled arrays
          * count: Specifies the number of indices to be rendered
          */
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        /* Parameters
+         * mode:  Specifies what kind of primitives to render
+         * count: Specifies the number of elements to be rendered
+         * type: Specifies the type of the values in indices(must be unsigned)
+         * indices: Specifies an offset of the first index in the array in the data
+         */
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
