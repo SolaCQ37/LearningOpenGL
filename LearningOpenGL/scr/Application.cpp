@@ -175,6 +175,11 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+    /* Specified OpenGL version and use core profile */
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_CORE_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     /* Create debug context before create OpenGL context */
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
@@ -221,6 +226,11 @@ int main(void)
         0, 1, 2,
         2, 3, 0
     };  // Index data
+
+    /* Create Vertex Array */
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
 
     unsigned int buffer;
     glGenBuffers(1, &buffer);
@@ -276,6 +286,10 @@ int main(void)
          * indices: Specifies an offset of the first index in the array in the data
          */
         glUniform4f(location, r, 0.3f, 0.7f, 1.0f);
+
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);  // Test error handling
 
         if (r >= 1.0f)
