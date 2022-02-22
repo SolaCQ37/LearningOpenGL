@@ -150,9 +150,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="scr\Application.cpp" />
+    <ClCompile Include="scr\IndexBuffer.cpp" />
+    <ClCompile Include="scr\Renderer.cpp" />
+    <ClCompile Include="scr\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="scr\IndexBuffer.h" />
+    <ClInclude Include="scr\Renderer.h" />
+    <ClInclude Include="scr\VertexBuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
