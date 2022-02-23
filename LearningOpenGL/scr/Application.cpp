@@ -8,6 +8,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 void APIENTRY debugMessageCallback(
     GLenum source,
@@ -195,99 +196,104 @@ int main(void)
     }
 
     /* Create VertexBuffer */
-    float positions[] = {
-        -0.5f, -0.5f,   // 0, left  down
-         0.5f, -0.5f,   // 1, right down
-         0.5f,  0.5f,   // 2, right top
-        -0.5f,  0.5f    // 3, left  top
-    };  // Vertex data
-
-    unsigned int indices[] = {
-        0, 1, 2,
-        2, 3, 0
-    };  // Index data
-
-    /* Create Vertex Array */
-    unsigned int vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    VertexBuffer* vb = new VertexBuffer(positions, 4 * 2 * sizeof(float));
-    
-    glEnableVertexAttribArray(0);
-    /* Parameters:
-     * index: Specifies the index of the generic vertex attribute to be modified
-     * size: Specifies the number of components per generic vertex attribute. Must be 1, 2, 3, 4.
-     * type: Specifies the data type of each component in the array.
-     * normalized: specifies whether fixed-point data values should be normalized
-     * stride: offset of vertex
-     * pointer: offset of attribute of vertex, position is first, so pointer == 0.
-     */
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-
-    IndexBuffer* ib = new IndexBuffer(indices, 6);
-
-    /* Now we get shader code from file */
-    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-    unsigned int shader = CreateShader(source.VertexShader, source.FragmentShader);
-    glUseProgram(shader);
-
-    /* Get "u_Color" location in shader */
-    int location = glGetUniformLocation(shader, "u_Color");
-    ASSERT(location != -1);
-    /* Create a uniform */
-    glUniform4f(location, 0.2f, 0.3f, 0.7f, 1.0f);
-
-    float r = 0.0f;
-    float increment = 0.05f;
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
     {
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        float positions[] = {
+            -0.5f, -0.5f,   // 0, left  down
+             0.5f, -0.5f,   // 1, right down
+             0.5f,  0.5f,   // 2, right top
+            -0.5f,  0.5f    // 3, left  top
+        };  // Vertex data
 
-        /* Parameters
-         * mode:  Specifies what kind of primitives to render
-         * first: Specifies the starting index in the enabled arrays
-         * count: Specifies the number of indices to be rendered
+        unsigned int indices[] = {
+            0, 1, 2,
+            2, 3, 0
+        };  // Index data
+
+        /* Create Vertex Array */
+        VertexArray va;
+        /* Create Vertex Buffer */
+        VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+        /* Vreate Vertex Buffer Layout */
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        va.AddBuffer(vb, layout);
+
+        //glEnableVertexAttribArray(0);
+        /* Parameters:
+         * index: Specifies the index of the generic vertex attribute to be modified
+         * size: Specifies the number of components per generic vertex attribute. Must be 1, 2, 3, 4.
+         * type: Specifies the data type of each component in the array.
+         * normalized: specifies whether fixed-point data values should be normalized
+         * stride: offset of vertex
+         * pointer: offset of attribute of vertex, position is first, so pointer == 0.
          */
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-        /* Parameters
-         * mode:  Specifies what kind of primitives to render
-         * count: Specifies the number of elements to be rendered
-         * type: Specifies the type of the values in indices(must be unsigned)
-         * indices: Specifies an offset of the first index in the array in the data
-         */
-        glUniform4f(location, r, 0.3f, 0.7f, 1.0f);
+        IndexBuffer ib(indices, 6);
 
-        glBindVertexArray(vao);
-        ib->Bind();
+        /* Now we get shader code from file */
+        ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+        unsigned int shader = CreateShader(source.VertexShader, source.FragmentShader);
+        glUseProgram(shader);
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);  // Test error handling
+        /* Get "u_Color" location in shader */
+        int location = glGetUniformLocation(shader, "u_Color");
+        ASSERT(location != -1);
+        /* Create a uniform */
+        glUniform4f(location, 0.2f, 0.3f, 0.7f, 1.0f);
 
-        if (r >= 1.0f)
+        va.Unbind();
+        vb.Unbind();
+        ib.Unbind();
+
+        float r = 0.0f;
+        float increment = 0.05f;
+        /* Loop until the user closes the window */
+        while (!glfwWindowShouldClose(window))
         {
-            increment = -0.05f;
-        }
-        else if (r <= 0.0f)
-        {
-            increment = 0.05f;
-        }
-        r += increment;
+            /* Render here */
+            glClear(GL_COLOR_BUFFER_BIT);
 
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
-        
-        /* Poll for and process events */
-        glfwPollEvents();
+            /* Parameters
+             * mode:  Specifies what kind of primitives to render
+             * first: Specifies the starting index in the enabled arrays
+             * count: Specifies the number of indices to be rendered
+             */
+             //glDrawArrays(GL_TRIANGLES, 0, 3);
+
+             /* Parameters
+              * mode:  Specifies what kind of primitives to render
+              * count: Specifies the number of elements to be rendered
+              * type: Specifies the type of the values in indices(must be unsigned)
+              * indices: Specifies an offset of the first index in the array in the data
+              */
+            glUniform4f(location, r, 0.3f, 0.7f, 1.0f);
+
+            va.Bind();
+            ib.Bind();
+
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);  // Test error handling
+
+            if (r >= 1.0f)
+            {
+                increment = -0.05f;
+            }
+            else if (r <= 0.0f)
+            {
+                increment = 0.05f;
+            }
+            r += increment;
+
+            /* Swap front and back buffers */
+            glfwSwapBuffers(window);
+
+            /* Poll for and process events */
+            glfwPollEvents();
+        }
+
+        glDeleteProgram(shader);
     }
-
-    glDeleteProgram(shader);
-
     /* Deconstruction vb and ib before glfwTerminate otherwise it will cause error */
-    delete vb;
-    delete ib;
 
     glfwTerminate();
     return 0;
