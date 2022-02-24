@@ -9,6 +9,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
+#include "Shader.h"
 
 void APIENTRY debugMessageCallback(
     GLenum source,
@@ -58,95 +59,7 @@ void APIENTRY debugMessageCallback(
     std::cout << std::endl;
 }
 
-struct ShaderProgramSource
-{
-    std::string VertexShader;
-    std::string FragmentShader;
-};
 
-static ShaderProgramSource ParseShader(const std::string& filePath)
-{
-    std::ifstream stream(filePath);
-
-    enum class ShaderType {
-        NONE = -1, VERTEX = 0, FRAGMENT = 1
-    };
-
-    std::string line;
-    std::stringstream ss[2];
-    ShaderType type = ShaderType::NONE;
-    while (std::getline(stream, line))
-    {
-        if (line.find("#shader") != std::string::npos)
-        {
-            if (line.find("vertex") != std::string::npos)
-            {
-                type = ShaderType::VERTEX;
-            }
-            else if (line.find("fragment") != std::string::npos)
-            {
-                type = ShaderType::FRAGMENT;
-            }
-        }
-        else
-        {
-            ss[(int)type] << line << '\n';
-        }
-    }
-
-    return { ss[0].str(), ss[1].str() };
-}
-
-static unsigned int CompileShader(unsigned int type, const std::string& source)
-{
-    unsigned int id = glCreateShader(type);
-    const char* src = source.c_str();
-    /* Parameters
-     * shader: Specifies the handle of the shader object whose source code is to be replaced
-     * count: Specifies the number of elements in the string and length arrays
-     * string: Specifies an array of pointers to strings containing the source code to be loaded into the shader
-     * length: Specifies an array of string lengths. If length is NULL, each string is assumed to be null terminated
-     */
-    glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id);
-
-    // Error handling
-    int result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (GL_FALSE == result)
-    {
-        int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)malloc(length * sizeof(char));
-
-        glGetShaderInfoLog(id, length, &length, message);
-        std::cout << "Failed to compile "
-                  << (type == GL_VERTEX_SHADER ? "vertex" : "fragment")
-                  << " shader." << std::endl;
-        std::cout << message << std::endl;
-        return 0;
-    }
-
-    return id;
-}
-
-static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
-{
-    unsigned int program = glCreateProgram();
-    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glValidateProgram(program);
-
-    /* We can delete shaders because they were linked to program. */
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    return program;
-}
 
 int main(void)
 {
@@ -232,19 +145,14 @@ int main(void)
         IndexBuffer ib(indices, 6);
 
         /* Now we get shader code from file */
-        ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-        unsigned int shader = CreateShader(source.VertexShader, source.FragmentShader);
-        glUseProgram(shader);
-
-        /* Get "u_Color" location in shader */
-        int location = glGetUniformLocation(shader, "u_Color");
-        ASSERT(location != -1);
-        /* Create a uniform */
-        glUniform4f(location, 0.2f, 0.3f, 0.7f, 1.0f);
+        Shader shader("res/shaders/Basic.shader");
+        shader.Bind();
+        shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.7f, 1.0f);
 
         va.Unbind();
         vb.Unbind();
         ib.Unbind();
+        shader.Unbind();
 
         float r = 0.0f;
         float increment = 0.05f;
@@ -261,17 +169,18 @@ int main(void)
              */
              //glDrawArrays(GL_TRIANGLES, 0, 3);
 
-             /* Parameters
-              * mode:  Specifies what kind of primitives to render
-              * count: Specifies the number of elements to be rendered
-              * type: Specifies the type of the values in indices(must be unsigned)
-              * indices: Specifies an offset of the first index in the array in the data
-              */
-            glUniform4f(location, r, 0.3f, 0.7f, 1.0f);
+            shader.Bind();
+            shader.SetUniform4f("u_Color", r, 0.3f, 0.7f, 1.0f);
 
             va.Bind();
             ib.Bind();
 
+            /* Parameters
+             * mode:  Specifies what kind of primitives to render
+             * count: Specifies the number of elements to be rendered
+             * type: Specifies the type of the values in indices(must be unsigned)
+             * indices: Specifies an offset of the first index in the array in the data
+             */
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);  // Test error handling
 
             if (r >= 1.0f)
@@ -290,8 +199,6 @@ int main(void)
             /* Poll for and process events */
             glfwPollEvents();
         }
-
-        glDeleteProgram(shader);
     }
     /* Deconstruction vb and ib before glfwTerminate otherwise it will cause error */
 
