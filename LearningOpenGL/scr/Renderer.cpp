@@ -20,3 +20,24 @@ bool GLLogCall(const char* function, const char* file, int line)
     }
     return true;
 }
+
+void Renderer::Clear() const
+{
+    GLCall(glClear(GL_COLOR_BUFFER_BIT));
+}
+
+/* We usually use material substitute for shader here, but it's more complex */
+void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const
+{
+    shader.Bind();
+    va.Bind();
+    ib.Bind();
+
+    /* Parameters
+     * mode:  Specifies what kind of primitives to render
+     * count: Specifies the number of elements to be rendered
+     * type: Specifies the type of the values in indices(must be unsigned)
+     * indices: Specifies an offset of the first index in the array in the data
+     */
+    GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, NULL));  
+}
