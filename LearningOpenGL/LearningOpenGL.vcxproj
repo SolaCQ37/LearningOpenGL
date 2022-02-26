@@ -153,6 +153,8 @@
     <ClCompile Include="scr\IndexBuffer.cpp" />
     <ClCompile Include="scr\Renderer.cpp" />
     <ClCompile Include="scr\Shader.cpp" />
+    <ClCompile Include="scr\Texture.cpp" />
+    <ClCompile Include="scr\vendor\stb_image\stb_image.cpp" />
     <ClCompile Include="scr\VertexArray.cpp" />
     <ClCompile Include="scr\VertexBuffer.cpp" />
   </ItemGroup>
@@ -163,6 +165,8 @@
     <ClInclude Include="scr\IndexBuffer.h" />
     <ClInclude Include="scr\Renderer.h" />
     <ClInclude Include="scr\Shader.h" />
+    <ClInclude Include="scr\Texture.h" />
+    <ClInclude Include="scr\vendor\stb_image\stb_image.h" />
     <ClInclude Include="scr\VertexArray.h" />
     <ClInclude Include="scr\VertexBuffer.h" />
     <ClInclude Include="scr\VertexBufferLayout.h" />

@@ -11,6 +11,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 void APIENTRY debugMessageCallback(
     GLenum source,
@@ -109,13 +110,13 @@ int main(void)
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
 
-    /* Create VertexBuffer */
+    /* Create VertexBuffer and add texture coordinates */
     {
         float positions[] = {
-            -0.5f, -0.5f,   // 0, left  down
-             0.5f, -0.5f,   // 1, right down
-             0.5f,  0.5f,   // 2, right top
-            -0.5f,  0.5f    // 3, left  top
+            -0.5f, -0.5f, 0.0f, 0.0f,  // 0, left  down
+             0.5f, -0.5f, 1.0f, 0.0f,  // 1, right down
+             0.5f,  0.5f, 1.0f, 1.0f,  // 2, right top
+            -0.5f,  0.5f, 0.0f, 1.0f   // 3, left  top
         };  // Vertex data
 
         unsigned int indices[] = {
@@ -123,12 +124,16 @@ int main(void)
             2, 3, 0
         };  // Index data
 
+        GLCall(glEnable(GL_BLEND));
+        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
         /* Create Vertex Array */
         VertexArray va;
         /* Create Vertex Buffer */
-        VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+        VertexBuffer vb(positions, 4 * 4 * sizeof(float));
         /* Vreate Vertex Buffer Layout */
         VertexBufferLayout layout;
+        layout.Push<float>(2);
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
 
@@ -148,7 +153,11 @@ int main(void)
         /* Now we get shader code from file */
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
-        shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.7f, 1.0f);
+        //shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.7f, 1.0f);
+
+        Texture texture("res/textures/AndroscogginRiver.png");
+        texture.Bind();
+        shader.SetUniform1i("u_Texture", 0);    // We bind our texture to slot 0
 
         va.Unbind();
         vb.Unbind();
@@ -173,7 +182,7 @@ int main(void)
              //glDrawArrays(GL_TRIANGLES, 0, 3);
 
             shader.Bind();
-            shader.SetUniform4f("u_Color", r, 0.3f, 0.7f, 1.0f);
+            //shader.SetUniform4f("u_Color", r, 0.3f, 0.7f, 1.0f);
 
             renderer.Draw(va, ib, shader);
 
